@@ -1,3 +1,5 @@
+'use client'; // ✅ यह एक लाइन जोड़ें – बस इतना ही!
+
 import Link from 'next/link';
 import { FaFacebook, FaTwitter, FaInstagram, FaYoutube, FaLinkedin } from 'react-icons/fa';
 
