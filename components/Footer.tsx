@@ -1,4 +1,4 @@
-'use client'; // ✅ यह एक लाइन जोड़ें – बस इतना ही!
+'use client';
 
 import Link from 'next/link';
 import { FaFacebook, FaTwitter, FaInstagram, FaYoutube, FaLinkedin } from 'react-icons/fa';
@@ -80,6 +80,11 @@ export default function Footer() {
               <li>
                 <Link href="/about" className="text-gray-400 hover:text-white transition-colors duration-200">
                   About Us
+                </Link>
+              </li>
+              <li>
+                <Link href="/author" className="text-gray-400 hover:text-white transition-colors duration-200">
+                  Author
                 </Link>
               </li>
               <li>
