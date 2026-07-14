@@ -25,6 +25,8 @@ export default function Header() {
             <Link href="/category/personal-finance" className="text-gray-700 hover:text-blue-700 transition">Personal Finance</Link>
             <Link href="/category/government-schemes" className="text-gray-700 hover:text-blue-700 transition">Govt Schemes</Link>
             <Link href="/tools/emi-calculator" className="text-gray-700 hover:text-blue-700 transition">Calculators</Link>
+            <Link href="/about" className="text-gray-700 hover:text-blue-700 transition">About</Link>
+            <Link href="/contact" className="text-gray-700 hover:text-blue-700 transition">Contact</Link>
           </nav>
 
           {/* Mobile Menu Toggle Button – Full Accessibility */}
@@ -34,10 +36,10 @@ export default function Header() {
             aria-label={isOpen ? "Close menu" : "Open menu"}
             aria-expanded={isOpen}
             aria-controls="mobile-menu"
-            title={isOpen ? "Close menu" : "Open menu"} // ✅ Tooltip for desktop users
+            title={isOpen ? "Close menu" : "Open menu"}
           >
             {isOpen ? (
-              <FaTimes aria-hidden="true" /> // ✅ Icon hidden from screen readers
+              <FaTimes aria-hidden="true" />
             ) : (
               <FaBars aria-hidden="true" />
             )}
@@ -75,6 +77,20 @@ export default function Header() {
                 onClick={closeMenu}
               >
                 Calculators
+              </Link>
+              <Link
+                href="/about"
+                className="text-gray-700 hover:text-blue-700 transition px-2 py-1 rounded hover:bg-gray-50"
+                onClick={closeMenu}
+              >
+                About
+              </Link>
+              <Link
+                href="/contact"
+                className="text-gray-700 hover:text-blue-700 transition px-2 py-1 rounded hover:bg-gray-50"
+                onClick={closeMenu}
+              >
+                Contact
               </Link>
             </nav>
           </div>
