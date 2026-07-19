@@ -27,28 +27,31 @@ export default function CommentSection({ slug, postId }: CommentSectionProps) {
 
   const API_URL = 'https://financial-sapl.onrender.com';
 
-  // ✅ Fetch Comments Function (useCallback)
+  // ✅ Fetch Comments with Debug Logs
   const fetchComments = useCallback(async () => {
     setLoading(true);
     setError(null);
+    const url = `${API_URL}/api/posts/${encodeURIComponent(slug)}/comments`;
+    console.log('🔍 Fetching comments from:', url); // ✅ Debug
     try {
-      const res = await fetch(`${API_URL}/api/posts/${encodeURIComponent(slug)}/comments`);
+      const res = await fetch(url);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
+      console.log('✅ Comments received:', data); // ✅ Debug
       if (Array.isArray(data)) {
         setComments(data);
       } else {
         setComments([]);
       }
     } catch (err) {
-      console.error('Failed to load comments:', err);
+      console.error('❌ Failed to load comments:', err);
       setError('Failed to load comments. Please refresh.');
     } finally {
       setLoading(false);
     }
   }, [slug, API_URL]);
 
-  // Load Comments on mount
+  // Load Comments on mount & when slug changes
   useEffect(() => {
     fetchComments();
   }, [fetchComments]);
@@ -80,7 +83,7 @@ export default function CommentSection({ slug, postId }: CommentSectionProps) {
         setEmail('');
         setContent('');
         alert('✅ Comment submitted! It will appear after approval.');
-        // ✅ Comment submit होने के बाद दोबारा Fetch करें
+        // ✅ Force refresh comments after submission (to show pending? but actually pending won't show)
         fetchComments();
       } else {
         alert('❌ Error: ' + (data.error || 'Something went wrong'));
@@ -97,7 +100,6 @@ export default function CommentSection({ slug, postId }: CommentSectionProps) {
         <h3 className="text-2xl font-bold text-gray-800">
           Comments ({comments.length})
         </h3>
-        {/* ✅ Refresh Button */}
         <button
           onClick={fetchComments}
           disabled={loading}

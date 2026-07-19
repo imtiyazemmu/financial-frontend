@@ -6,6 +6,9 @@ import CommentSection from '@/components/CommentSection';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 
+// ✅ ISR – Force cache refresh every 10 seconds (Comments ke liye)
+export const revalidate = 10;
+
 // ---------- Helpers ----------
 function getReadingTime(content: string) {
   const text = content.replace(/<[^>]+>/g, ' ');
@@ -201,7 +204,7 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
             </div>
           )}
 
-          {/* ✅ Comment Section – अब postId भी pass किया गया है */}
+          {/* ✅ Comment Section */}
           <div className="mt-16">
             <CommentSection slug={post.slug} postId={post.id} />
           </div>
