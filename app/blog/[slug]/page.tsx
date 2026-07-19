@@ -1,3 +1,6 @@
+'use client';
+
+
 import { getPostBySlug, getAllPosts } from '@/lib/api';
 import { Post } from '@/lib/api';
 import Link from 'next/link';
