@@ -13,7 +13,7 @@ export const metadata = {
     description: 'Learn personal finance, government schemes, and banking in Hindi.',
     type: 'website',
     locale: 'hi_IN',
-    url: 'https://your-domain.com',
+    url: 'https://picsartpng.in',
   },
 };
 
