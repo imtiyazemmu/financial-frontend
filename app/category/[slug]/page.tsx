@@ -16,11 +16,11 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
   const { slug } = await params;
   const allPosts = await getAllPosts();
 
-  // ✅ नया फ़िल्टर: API अब `categories` Array भेज रहा है
+  // ✅ सही फ़िल्टर: क्योंकि API अब `categories` Array भेज रहा है
   const filteredPosts = allPosts.filter((post) => {
-    // अगर post.categories मौजूद है और वह एक Array है
+    // अगर post.categories मौजूद है और वह Array है
     if (post.categories && Array.isArray(post.categories)) {
-      // चेक करें कि क्या कोई Category का slug (मैन्युअल generate) हमारे slug से match करता है
+      // क्या कोई Category का Slug (generate) हमारे slug से match करता है?
       return post.categories.some((catName: string) => {
         const catSlug = catName.toLowerCase().replace(/ /g, '-');
         return catSlug === slug;
