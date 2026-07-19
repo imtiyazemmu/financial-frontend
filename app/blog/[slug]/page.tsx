@@ -7,10 +7,10 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Inter } from 'next/font/google';
 
-// ✅ Google Font (Inter) – Clean & Readable
+// ✅ Google Font
 const inter = Inter({ subsets: ['latin'] });
 
-// ✅ ISR – Comments के लिए 10 सेकंड Revalidation
+// ✅ ISR – 10 सेकंड Revalidation
 export const revalidate = 10;
 
 // ---------- Helpers ----------
@@ -31,6 +31,9 @@ function extractHeadings(content: string) {
   }
   return headings;
 }
+
+// ✅ Client Component – `styled-jsx` के लिए
+'use client';
 
 function BlogContentClient({ content }: { content: string }) {
   const headings = extractHeadings(content);
@@ -353,7 +356,7 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
             </div>
           )}
 
-          {/* ✅ Comment Section – Cache Busting with Timestamp inside component */}
+          {/* Comment Section */}
           <div className="mt-16">
             <CommentSection slug={post.slug} postId={post.id} />
           </div>
