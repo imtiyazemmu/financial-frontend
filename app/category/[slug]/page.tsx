@@ -15,12 +15,22 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 export default async function CategoryPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const allPosts = await getAllPosts();
-  const filteredPosts = allPosts.filter(p => 
-    p.category && p.category.toLowerCase().replace(/ /g, '-') === slug
-  );
 
-  const categoryName = filteredPosts.length > 0 
-    ? filteredPosts[0].category 
+  // ✅ नया फ़िल्टर: API अब `categories` Array भेज रहा है
+  const filteredPosts = allPosts.filter((post) => {
+    // अगर post.categories मौजूद है और वह एक Array है
+    if (post.categories && Array.isArray(post.categories)) {
+      // चेक करें कि क्या कोई Category का slug (मैन्युअल generate) हमारे slug से match करता है
+      return post.categories.some((catName: string) => {
+        const catSlug = catName.toLowerCase().replace(/ /g, '-');
+        return catSlug === slug;
+      });
+    }
+    return false;
+  });
+
+  const categoryName = filteredPosts.length > 0
+    ? filteredPosts[0].categories?.[0] || slug.replace(/-/g, ' ').toUpperCase()
     : slug.replace(/-/g, ' ').toUpperCase();
 
   return (
