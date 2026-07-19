@@ -11,9 +11,10 @@ interface Comment {
 
 interface CommentSectionProps {
   slug: string;
+  postId: number;   // ✅ नया prop
 }
 
-export default function CommentSection({ slug }: CommentSectionProps) {
+export default function CommentSection({ slug, postId }: CommentSectionProps) {
   const [comments, setComments] = useState<Comment[]>([]);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -23,10 +24,9 @@ export default function CommentSection({ slug }: CommentSectionProps) {
 
   const API_URL = 'https://financial-sapl.onrender.com';
 
-
-  // Load Comments
+  // Load Comments (GET) – slug का उपयोग करें
   useEffect(() => {
-    fetch(`${API_URL}/api/posts/${slug}/comments`)
+    fetch(`${API_URL}/api/posts/${encodeURIComponent(slug)}/comments`)
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data)) setComments(data);
@@ -34,7 +34,7 @@ export default function CommentSection({ slug }: CommentSectionProps) {
       .catch(err => console.error('Failed to load comments:', err));
   }, [slug, API_URL]);
 
-  // Submit Comment
+  // Submit Comment – postId का उपयोग करें
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !content.trim()) {
@@ -44,10 +44,15 @@ export default function CommentSection({ slug }: CommentSectionProps) {
 
     setLoading(true);
     try {
-      const res = await fetch(`${API_URL}/api/posts/${slug}/comments`, {
+      const res = await fetch(`${API_URL}/api/comments`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ author_name: name, author_email: email, content }),
+        body: JSON.stringify({
+          post_id: postId,
+          author_name: name,
+          author_email: email,
+          content,
+        }),
       });
       const data = await res.json();
       if (res.ok) {
@@ -55,7 +60,6 @@ export default function CommentSection({ slug }: CommentSectionProps) {
         setName('');
         setEmail('');
         setContent('');
-        // Optionally, reload comments (but they are pending, so keep it empty or show message)
         alert('✅ Comment submitted! It will appear after approval.');
       } else {
         alert('❌ Error: ' + (data.error || 'Something went wrong'));
@@ -72,7 +76,6 @@ export default function CommentSection({ slug }: CommentSectionProps) {
         Comments ({comments.length})
       </h3>
 
-      {/* Comments List */}
       <div className="space-y-6 mb-8">
         {comments.length === 0 && (
           <p className="text-gray-500 italic">No comments yet. Be the first!</p>
@@ -91,7 +94,6 @@ export default function CommentSection({ slug }: CommentSectionProps) {
         ))}
       </div>
 
-      {/* Comment Form */}
       {!submitted ? (
         <form onSubmit={handleSubmit} className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
           <h4 className="text-lg font-semibold text-gray-800 mb-4">Leave a Comment</h4>
