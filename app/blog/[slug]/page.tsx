@@ -1,8 +1,8 @@
 import { getPostBySlug, getAllPosts } from '@/lib/api';
 import { Post } from '@/lib/api';
 import Link from 'next/link';
-import PostShareButtons from '@/components/PostShareButtons'; // ✅ New Share Buttons
-import CommentSection from '@/components/CommentSection';     // ✅ Comment Section
+import PostShareButtons from '@/components/PostShareButtons';
+import CommentSection from '@/components/CommentSection';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 
@@ -171,7 +171,7 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
 
           <BlogContentClient content={post.content} />
 
-          {/* ✅ Post Share Buttons – यहाँ जोड़े गए */}
+          {/* ✅ Post Share Buttons */}
           <div className="mt-6 pt-4 border-t border-gray-200">
             <PostShareButtons slug={post.slug} title={post.title} />
           </div>
@@ -201,9 +201,9 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
             </div>
           )}
 
-          {/* ✅ Comment Section – यहाँ जोड़ा गया */}
+          {/* ✅ Comment Section – अब postId भी pass किया गया है */}
           <div className="mt-16">
-            <CommentSection slug={post.slug} />
+            <CommentSection slug={post.slug} postId={post.id} />
           </div>
 
         </article>
