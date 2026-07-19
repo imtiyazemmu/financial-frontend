@@ -1,6 +1,5 @@
 'use client';
 
-
 import { getPostBySlug, getAllPosts } from '@/lib/api';
 import { Post } from '@/lib/api';
 import Link from 'next/link';
@@ -13,7 +12,7 @@ import { Inter } from 'next/font/google';
 // ✅ Google Font
 const inter = Inter({ subsets: ['latin'] });
 
-// ✅ ISR – 10 सेकंड Revalidation
+// ✅ ISR – 10 सेकंड Revalidation (Client Component में भी काम करता है)
 export const revalidate = 10;
 
 // ---------- Helpers ----------
@@ -34,9 +33,6 @@ function extractHeadings(content: string) {
   }
   return headings;
 }
-
-// ✅ Client Component – `styled-jsx` के लिए
-'use client';
 
 function BlogContentClient({ content }: { content: string }) {
   const headings = extractHeadings(content);
