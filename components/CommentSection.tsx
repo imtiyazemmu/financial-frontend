@@ -1,40 +1,59 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 interface Comment {
   id: number;
   author_name: string;
   content: string;
+  reply: string | null;
   created_at: string;
 }
 
 interface CommentSectionProps {
   slug: string;
-  postId: number;   // ✅ नया prop
+  postId: number;
 }
 
 export default function CommentSection({ slug, postId }: CommentSectionProps) {
   const [comments, setComments] = useState<Comment[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [content, setContent] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
   const API_URL = 'https://financial-sapl.onrender.com';
 
-  // Load Comments (GET) – slug का उपयोग करें
-  useEffect(() => {
-    fetch(`${API_URL}/api/posts/${encodeURIComponent(slug)}/comments`)
-      .then(res => res.json())
-      .then(data => {
-        if (Array.isArray(data)) setComments(data);
-      })
-      .catch(err => console.error('Failed to load comments:', err));
+  // ✅ Fetch Comments Function (useCallback)
+  const fetchComments = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`${API_URL}/api/posts/${encodeURIComponent(slug)}/comments`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        setComments(data);
+      } else {
+        setComments([]);
+      }
+    } catch (err) {
+      console.error('Failed to load comments:', err);
+      setError('Failed to load comments. Please refresh.');
+    } finally {
+      setLoading(false);
+    }
   }, [slug, API_URL]);
 
-  // Submit Comment – postId का उपयोग करें
+  // Load Comments on mount
+  useEffect(() => {
+    fetchComments();
+  }, [fetchComments]);
+
+  // Submit Comment
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !content.trim()) {
@@ -42,7 +61,7 @@ export default function CommentSection({ slug, postId }: CommentSectionProps) {
       return;
     }
 
-    setLoading(true);
+    setSubmitting(true);
     try {
       const res = await fetch(`${API_URL}/api/comments`, {
         method: 'POST',
@@ -61,23 +80,41 @@ export default function CommentSection({ slug, postId }: CommentSectionProps) {
         setEmail('');
         setContent('');
         alert('✅ Comment submitted! It will appear after approval.');
+        // ✅ Comment submit होने के बाद दोबारा Fetch करें
+        fetchComments();
       } else {
         alert('❌ Error: ' + (data.error || 'Something went wrong'));
       }
     } catch (err) {
       alert('❌ Network error. Please try again.');
     }
-    setLoading(false);
+    setSubmitting(false);
   };
 
   return (
     <div className="mt-12 border-t border-gray-200 pt-10">
-      <h3 className="text-2xl font-bold text-gray-800 mb-6">
-        Comments ({comments.length})
-      </h3>
+      <div className="flex items-center justify-between mb-6">
+        <h3 className="text-2xl font-bold text-gray-800">
+          Comments ({comments.length})
+        </h3>
+        {/* ✅ Refresh Button */}
+        <button
+          onClick={fetchComments}
+          disabled={loading}
+          className="text-sm text-blue-600 hover:text-blue-800 disabled:opacity-50"
+        >
+          {loading ? 'Loading...' : '🔄 Refresh'}
+        </button>
+      </div>
+
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-lg mb-4">
+          {error}
+        </div>
+      )}
 
       <div className="space-y-6 mb-8">
-        {comments.length === 0 && (
+        {!loading && comments.length === 0 && (
           <p className="text-gray-500 italic">No comments yet. Be the first!</p>
         )}
         {comments.map((comment) => (
@@ -90,6 +127,15 @@ export default function CommentSection({ slug, postId }: CommentSectionProps) {
               <span className="text-xs text-gray-400">• {comment.created_at}</span>
             </div>
             <p className="text-gray-700">{comment.content}</p>
+
+            {comment.reply && (
+              <div className="mt-3 pl-4 border-l-4 border-blue-500 bg-blue-50/50 p-3 rounded-r-lg">
+                <p className="text-sm font-semibold text-blue-700 flex items-center gap-2">
+                  <span>🗣️ Admin Reply</span>
+                </p>
+                <p className="text-gray-700 text-sm">{comment.reply}</p>
+              </div>
+            )}
           </div>
         ))}
       </div>
@@ -133,10 +179,10 @@ export default function CommentSection({ slug, postId }: CommentSectionProps) {
           </div>
           <button
             type="submit"
-            disabled={loading}
+            disabled={submitting}
             className="bg-blue-700 hover:bg-blue-800 text-white font-medium px-6 py-2 rounded-lg transition-colors disabled:opacity-50"
           >
-            {loading ? 'Submitting...' : 'Post Comment'}
+            {submitting ? 'Submitting...' : 'Post Comment'}
           </button>
           <p className="text-xs text-gray-400 mt-3">
             💡 Your comment will appear after admin approval.
@@ -147,7 +193,7 @@ export default function CommentSection({ slug, postId }: CommentSectionProps) {
           <p className="text-green-700 font-medium">✅ Thank you for your comment!</p>
           <p className="text-sm text-gray-600">It will appear after admin approval.</p>
           <button
-            onClick={() => setSubmitted(false)}
+            onClick={() => { setSubmitted(false); fetchComments(); }}
             className="mt-3 text-blue-600 hover:underline text-sm"
           >
             Write another comment
