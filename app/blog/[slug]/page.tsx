@@ -5,8 +5,12 @@ import PostShareButtons from '@/components/PostShareButtons';
 import CommentSection from '@/components/CommentSection';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import { Inter } from 'next/font/google';
 
-// ✅ ISR – Force cache refresh every 10 seconds (Comments ke liye)
+// ✅ Google Font (Inter) – Clean & Readable
+const inter = Inter({ subsets: ['latin'] });
+
+// ✅ ISR – Comments के लिए 10 सेकंड Revalidation
 export const revalidate = 10;
 
 // ---------- Helpers ----------
@@ -34,13 +38,20 @@ function BlogContentClient({ content }: { content: string }) {
 
   return (
     <>
+      {/* Table of Contents */}
       {headings.length > 2 && (
-        <div className="bg-gray-50 border-l-4 border-blue-500 p-4 rounded-r-xl mb-6">
-          <h3 className="font-bold text-gray-700 text-sm uppercase tracking-wider">📖 Table of Contents</h3>
-          <ul className="mt-2 space-y-1">
+        <div className="bg-gradient-to-r from-blue-50/80 to-indigo-50/80 p-6 rounded-2xl border border-blue-100/50 mb-8 backdrop-blur-sm">
+          <h3 className="text-sm font-bold text-gray-600 uppercase tracking-wider flex items-center gap-2">
+            <span className="w-1 h-4 bg-blue-500 rounded-full"></span>
+            Table of Contents
+          </h3>
+          <ul className="mt-3 space-y-1.5">
             {headings.map((h, idx) => (
               <li key={idx} style={{ marginLeft: `${(h.level - 1) * 1.2}rem` }}>
-                <a href={`#${h.id}`} className="text-blue-600 hover:underline text-sm">
+                <a
+                  href={`#${h.id}`}
+                  className="text-blue-600 hover:text-blue-800 text-sm font-medium hover:underline transition"
+                >
                   {h.text}
                 </a>
               </li>
@@ -49,28 +60,140 @@ function BlogContentClient({ content }: { content: string }) {
         </div>
       )}
 
-      <div className="flex items-center gap-4 text-sm text-gray-500 mb-6 p-3 bg-gray-50 rounded-lg">
-        <span className="flex items-center gap-1">🕒 {readingTime} min read</span>
+      {/* Reading Time + Word Count */}
+      <div className="flex items-center gap-5 text-sm text-gray-500 mb-8 p-4 bg-gray-50/80 rounded-xl border border-gray-200/50">
+        <span className="flex items-center gap-1.5">📖 {readingTime} min read</span>
         <span className="w-px h-4 bg-gray-300" />
-        <span className="flex items-center gap-1">📝 {content.replace(/<[^>]+>/g, ' ').split(/\s+/).filter(Boolean).length} words</span>
+        <span className="flex items-center gap-1.5">📝 {content.replace(/<[^>]+>/g, ' ').split(/\s+/).filter(Boolean).length} words</span>
       </div>
 
-      <div className="blog-content" dangerouslySetInnerHTML={{ __html: content }} />
+      {/* Main Content */}
+      <div
+        className={`blog-content ${inter.className}`}
+        dangerouslySetInnerHTML={{ __html: content }}
+      />
 
-      <style>{`
-        .blog-content h1, .blog-content h2, .blog-content h3, .blog-content h4 {
-          scroll-margin-top: 80px;
+      <style jsx>{`
+        .blog-content {
+          font-size: 1.125rem;
+          line-height: 1.8;
+          color: #1e293b;
         }
-        .blog-content h1 { font-size: 2.2rem; font-weight: 700; margin-top: 1.8rem; margin-bottom: 0.8rem; }
-        .blog-content h2 { font-size: 1.8rem; font-weight: 600; margin-top: 1.6rem; margin-bottom: 0.6rem; }
-        .blog-content h3 { font-size: 1.4rem; font-weight: 600; margin-top: 1.2rem; }
-        .blog-content p { margin-bottom: 1.2rem; line-height: 1.8; color: #1f2937; }
-        .blog-content ul, .blog-content ol { margin-left: 1.5rem; margin-bottom: 1.2rem; }
-        .blog-content li { margin-bottom: 0.5rem; }
-        .blog-content strong { color: #1e3a8a; }
-        .blog-content a { color: #2563eb; text-decoration: underline; }
-        .blog-content img { border-radius: 12px; margin: 1.5rem 0; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
-        .blog-content blockquote { border-left: 4px solid #3b82f6; padding-left: 1.2rem; color: #4b5563; font-style: italic; }
+        .blog-content h1,
+        .blog-content h2,
+        .blog-content h3,
+        .blog-content h4 {
+          scroll-margin-top: 100px;
+          font-weight: 700;
+          letter-spacing: -0.02em;
+          line-height: 1.3;
+          margin-top: 2.5rem;
+          margin-bottom: 0.75rem;
+        }
+        .blog-content h1 {
+          font-size: 2.8rem;
+          background: linear-gradient(135deg, #1e293b, #3b82f6);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+        .blog-content h2 {
+          font-size: 2.2rem;
+          color: #0f172a;
+          border-bottom: 2px solid #e2e8f0;
+          padding-bottom: 0.4rem;
+        }
+        .blog-content h3 {
+          font-size: 1.7rem;
+          color: #1e293b;
+        }
+        .blog-content h4 {
+          font-size: 1.3rem;
+          color: #334155;
+        }
+        .blog-content p {
+          margin-bottom: 1.5rem;
+          color: #334155;
+        }
+        .blog-content ul,
+        .blog-content ol {
+          margin-left: 1.8rem;
+          margin-bottom: 1.5rem;
+        }
+        .blog-content li {
+          margin-bottom: 0.5rem;
+          color: #334155;
+        }
+        .blog-content strong {
+          color: #0f172a;
+          font-weight: 700;
+        }
+        .blog-content a {
+          color: #2563eb;
+          text-decoration: underline;
+          text-underline-offset: 2px;
+          font-weight: 500;
+        }
+        .blog-content a:hover {
+          color: #1d4ed8;
+        }
+        .blog-content img {
+          border-radius: 16px;
+          margin: 2rem 0;
+          box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+          transition: transform 0.2s ease;
+        }
+        .blog-content img:hover {
+          transform: scale(1.01);
+        }
+        .blog-content blockquote {
+          border-left: 5px solid #3b82f6;
+          padding-left: 1.8rem;
+          padding-top: 0.8rem;
+          padding-bottom: 0.8rem;
+          margin: 1.8rem 0;
+          background: linear-gradient(to right, #f8fafc, #ffffff);
+          border-radius: 0 12px 12px 0;
+          font-style: italic;
+          color: #475569;
+        }
+        .blog-content code {
+          background: #f1f5f9;
+          padding: 0.2rem 0.5rem;
+          border-radius: 6px;
+          font-size: 0.9rem;
+          font-family: 'Courier New', monospace;
+          color: #b91c1c;
+        }
+        .blog-content pre {
+          background: #0f172a;
+          padding: 1.2rem;
+          border-radius: 14px;
+          overflow-x: auto;
+          margin: 1.8rem 0;
+          color: #e2e8f0;
+          font-size: 0.9rem;
+        }
+        .blog-content pre code {
+          background: transparent;
+          color: inherit;
+          padding: 0;
+        }
+        .blog-content table {
+          width: 100%;
+          border-collapse: collapse;
+          margin: 1.8rem 0;
+        }
+        .blog-content th,
+        .blog-content td {
+          border: 1px solid #e2e8f0;
+          padding: 0.6rem 1rem;
+          text-align: left;
+        }
+        .blog-content th {
+          background: #f1f5f9;
+          font-weight: 600;
+        }
       `}</style>
     </>
   );
@@ -119,7 +242,7 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
     );
   }
 
-  // ✅ Related Posts – using categories array
+  // Related Posts
   let relatedPosts: Post[] = [];
   if (post.categories && post.categories.length > 0) {
     const allPosts = await getAllPosts();
@@ -147,68 +270,93 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
   return (
     <>
       <Header />
-      <main className="min-h-screen bg-gradient-to-b from-white via-blue-50/20 to-white">
-        <article className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <main className="min-h-screen bg-gradient-to-b from-white via-gray-50/30 to-white py-12">
+        <article className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
-          <nav className="text-sm text-gray-500 mb-4">
-            <Link href="/" className="hover:text-blue-600">Home</Link>
-            <span className="mx-2">/</span>
-            <Link href="/blog" className="hover:text-blue-600">Blog</Link>
-            <span className="mx-2">/</span>
-            <span className="text-gray-700 font-medium">{post.title}</span>
+          {/* Breadcrumb */}
+          <nav className="text-sm text-gray-500 mb-6 flex items-center gap-2">
+            <Link href="/" className="hover:text-blue-600 transition">Home</Link>
+            <span className="text-gray-300">›</span>
+            <Link href="/blog" className="hover:text-blue-600 transition">Blog</Link>
+            <span className="text-gray-300">›</span>
+            <span className="text-gray-700 font-medium truncate">{post.title}</span>
           </nav>
 
+          {/* Featured Image */}
           {post.featured_image && (
-            <img src={post.featured_image} alt={post.title} className="w-full h-72 md:h-96 object-cover rounded-2xl shadow-lg mb-8" />
+            <div className="relative w-full h-72 md:h-96 rounded-2xl overflow-hidden shadow-xl mb-8">
+              <img
+                src={post.featured_image}
+                alt={post.title}
+                className="w-full h-full object-cover"
+              />
+            </div>
           )}
-          <h1 className="text-3xl md:text-5xl font-extrabold text-gray-900 leading-tight">{post.title}</h1>
-          
-          <div className="flex flex-wrap items-center gap-3 mt-4 text-sm text-gray-500 border-b pb-6">
-            <span className="bg-gradient-to-r from-blue-100 to-emerald-100 text-blue-800 px-3 py-1 rounded-full text-xs font-semibold">
+
+          {/* Title */}
+          <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 leading-tight tracking-tight">
+            {post.title}
+          </h1>
+
+          {/* Meta */}
+          <div className="flex flex-wrap items-center gap-4 mt-4 text-sm text-gray-500 border-b border-gray-200 pb-6">
+            <span className="bg-gradient-to-r from-blue-100 to-emerald-100 text-blue-800 px-4 py-1.5 rounded-full text-xs font-semibold">
               {post.categories && post.categories.length > 0 ? post.categories.join(', ') : 'General'}
             </span>
             <span className="text-gray-300">|</span>
-            <span>{post.created_at}</span>
+            <span className="flex items-center gap-1">{post.created_at}</span>
           </div>
 
+          {/* Content */}
           <BlogContentClient content={post.content} />
 
-          {/* ✅ Post Share Buttons */}
-          <div className="mt-6 pt-4 border-t border-gray-200">
+          {/* Share Buttons */}
+          <div className="mt-10 pt-6 border-t border-gray-200">
             <PostShareButtons slug={post.slug} title={post.title} />
           </div>
 
-          <div className="mt-12 p-6 bg-white rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
-            <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-emerald-400 rounded-full flex items-center justify-center text-white text-2xl font-bold">📘</div>
+          {/* Author Bio */}
+          <div className="mt-12 p-6 bg-white rounded-2xl shadow-sm border border-gray-100 flex items-center gap-5">
+            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-emerald-400 rounded-full flex items-center justify-center text-white text-2xl font-bold shadow-md">
+              📘
+            </div>
             <div>
-              <p className="font-bold text-gray-800">Financial Expert</p>
+              <p className="font-bold text-gray-800 text-lg">Financial Expert</p>
               <p className="text-sm text-gray-500">Personal Finance & Govt Schemes Specialist</p>
             </div>
           </div>
 
+          {/* Related Posts */}
           {relatedPosts.length > 0 && (
-            <div className="mt-12">
-              <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-                <span className="w-1 h-6 bg-blue-500 rounded-full" />
+            <div className="mt-16">
+              <h3 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+                <span className="w-1.5 h-8 bg-blue-500 rounded-full" />
                 You May Also Like
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                 {relatedPosts.map(p => (
-                  <Link href={`/blog/${p.slug}`} key={p.id} className="bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition border border-gray-100">
-                    <h4 className="font-semibold text-blue-600 hover:underline line-clamp-2">{p.title}</h4>
-                    <p className="text-xs text-gray-400 mt-1">{p.created_at}</p>
+                  <Link
+                    href={`/blog/${p.slug}`}
+                    key={p.id}
+                    className="group bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border border-gray-100 overflow-hidden"
+                  >
+                    <div className="p-5">
+                      <h4 className="font-semibold text-blue-600 group-hover:text-blue-800 transition line-clamp-2">
+                        {p.title}
+                      </h4>
+                      <p className="text-xs text-gray-400 mt-2">{p.created_at}</p>
+                    </div>
                   </Link>
                 ))}
               </div>
             </div>
           )}
 
-          {/* ✅ Comment Section */}
+          {/* ✅ Comment Section – Cache Busting with Timestamp inside component */}
           <div className="mt-16">
             <CommentSection slug={post.slug} postId={post.id} />
           </div>
-
         </article>
       </main>
       <Footer />
