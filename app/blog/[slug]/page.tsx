@@ -1,11 +1,8 @@
 import { getPostBySlug, getAllPosts } from '@/lib/api';
 import Link from 'next/link';
-import Image from 'next/image';
+import ShareButtons from './ShareButtons';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import ShareButtons from '@/components/ShareButtons';
-import { getImageUrl } from '@/lib/utils';
-import CommentSection from '@/components/CommentSection';
 
 // ---------- Helpers ----------
 function getReadingTime(content: string) {
@@ -33,12 +30,12 @@ function BlogContentClient({ content }: { content: string }) {
   return (
     <>
       {headings.length > 2 && (
-        <div className="bg-gray-50 border-l-4 border-blue-600 p-4 rounded-r mb-6">
+        <div className="bg-gray-50 border-l-4 border-blue-500 p-4 rounded-r-xl mb-6">
           <h3 className="font-bold text-gray-700 text-sm uppercase tracking-wider">📖 Table of Contents</h3>
           <ul className="mt-2 space-y-1">
             {headings.map((h, idx) => (
               <li key={idx} style={{ marginLeft: `${(h.level - 1) * 1.2}rem` }}>
-                <a href={`#${h.id}`} className="text-blue-700 hover:underline text-sm">
+                <a href={`#${h.id}`} className="text-blue-600 hover:underline text-sm">
                   {h.text}
                 </a>
               </li>
@@ -54,6 +51,7 @@ function BlogContentClient({ content }: { content: string }) {
       </div>
 
       <div className="blog-content" dangerouslySetInnerHTML={{ __html: content }} />
+
       <ShareButtons />
 
       <style>{`
@@ -68,7 +66,7 @@ function BlogContentClient({ content }: { content: string }) {
         .blog-content li { margin-bottom: 0.5rem; }
         .blog-content strong { color: #1e3a8a; }
         .blog-content a { color: #2563eb; text-decoration: underline; }
-        .blog-content img { border-radius: 8px; margin: 1.5rem 0; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+        .blog-content img { border-radius: 12px; margin: 1.5rem 0; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
         .blog-content blockquote { border-left: 4px solid #3b82f6; padding-left: 1.2rem; color: #4b5563; font-style: italic; }
       `}</style>
     </>
@@ -80,16 +78,14 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
   const post = await getPostBySlug(slug);
   if (!post) return { title: 'Post Not Found' };
-  const plainDesc = post.meta_description
-    ? post.meta_description.replace(/<[^>]+>/g, '')
-    : post.content.replace(/<[^>]+>/g, '').substring(0, 155);
+  const plainDesc = post.meta_description ? post.meta_description.replace(/<[^>]+>/g, '') : post.content.replace(/<[^>]+>/g, '').substring(0, 155);
   return {
     title: post.meta_title || post.title,
     description: plainDesc,
     openGraph: {
       title: post.meta_title || post.title,
       description: plainDesc,
-      images: post.featured_image ? [getImageUrl(post.featured_image)] : [],
+      images: post.featured_image ? [post.featured_image] : [],
       type: 'article',
       publishedTime: post.created_at,
     },
@@ -97,7 +93,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       card: 'summary_large_image',
       title: post.meta_title || post.title,
       description: plainDesc,
-      images: post.featured_image ? [getImageUrl(post.featured_image)] : [],
+      images: post.featured_image ? [post.featured_image] : [],
     },
   };
 }
@@ -115,82 +111,63 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
   if (!post) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <h1 className="text-4xl font-bold text-gray-800">404</h1>
-          <p className="text-gray-600 mt-2">Post not found</p>
-        </div>
+        <div className="text-center"><h1 className="text-4xl font-bold text-gray-800">404</h1><p className="text-gray-600 mt-2">Post not found</p></div>
       </div>
     );
   }
 
-  // ---------- Related Posts (Type-Safe) ----------
-  type PostType = NonNullable<Awaited<ReturnType<typeof getPostBySlug>>>;
-  let relatedPosts: PostType[] = [];
-  if (post.category) {
+  // ✅ FIX: अब `categories` Array का उपयोग करें
+  // Related Posts – same categories (अगर कोई category है)
+  let relatedPosts: Awaited<ReturnType<typeof getPostBySlug>>[] = [];
+  if (post.categories && post.categories.length > 0) {
     const allPosts = await getAllPosts();
-    const isPost = (p: any): p is PostType => p !== null && p !== undefined;
-    relatedPosts = allPosts
-      .filter(isPost)
-      .filter(p => p.category === post.category && p.id !== post.id)
-      .slice(0, 3);
+    // फ़िल्टर करें: उसी categories में से एक भी category match हो
+    relatedPosts = allPosts.filter((p) => {
+      if (p.id === post.id) return false;
+      if (!p.categories || p.categories.length === 0) return false;
+      // Check if any category matches
+      return post.categories.some(cat => p.categories.includes(cat));
+    });
+    // Limit to 3
+    relatedPosts = relatedPosts.slice(0, 3);
   }
 
-  // ---------- JSON-LD ----------
-  const featuredImageUrl = post.featured_image
-    ? getImageUrl(post.featured_image)
-    : 'https://via.placeholder.com/800x400';
+  // JSON-LD
   const jsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'BlogPosting',
-    headline: post.title,
-    description: post.meta_description
-      ? post.meta_description.replace(/<[^>]+>/g, '')
-      : post.content.replace(/<[^>]+>/g, '').substring(0, 155),
-    image: featuredImageUrl,
-    author: { '@type': 'Person', name: 'Financial Expert' },
-    datePublished: post.created_at,
-    dateModified: post.created_at,
-    publisher: { '@type': 'Organization', name: 'FinanceTips' },
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "headline": post.title,
+    "description": post.meta_description ? post.meta_description.replace(/<[^>]+>/g, '') : post.content.replace(/<[^>]+>/g, '').substring(0, 155),
+    "image": post.featured_image || "https://via.placeholder.com/800x400",
+    "author": { "@type": "Person", "name": "Financial Expert" },
+    "datePublished": post.created_at,
+    "dateModified": post.created_at,
+    "publisher": { "@type": "Organization", "name": "FinanceTips" }
   };
 
   return (
     <>
       <Header />
-      <main className="min-h-screen bg-white">
-        <article className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <script
-            type="application/ld+json"
-            dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-          />
+      <main className="min-h-screen bg-gradient-to-b from-white via-blue-50/20 to-white">
+        <article className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
-          {/* Breadcrumb */}
           <nav className="text-sm text-gray-500 mb-4">
-            <Link href="/" className="hover:text-blue-700">Home</Link>
+            <Link href="/" className="hover:text-blue-600">Home</Link>
             <span className="mx-2">/</span>
-            <Link href="/blog" className="hover:text-blue-700">Blog</Link>
+            <Link href="/blog" className="hover:text-blue-600">Blog</Link>
             <span className="mx-2">/</span>
             <span className="text-gray-700 font-medium">{post.title}</span>
           </nav>
 
-          {/* Featured Image */}
           {post.featured_image && (
-            <div className="relative w-full h-64 md:h-80 mb-6">
-              <Image
-                src={getImageUrl(post.featured_image)}
-                alt={post.title}
-                fill
-                priority={true}
-                className="object-cover rounded-lg shadow-sm"
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              />
-            </div>
+            <img src={post.featured_image} alt={post.title} className="w-full h-72 md:h-96 object-cover rounded-2xl shadow-lg mb-8" />
           )}
-
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 leading-tight">{post.title}</h1>
-
-          <div className="flex flex-wrap items-center gap-3 mt-4 text-sm text-gray-500 border-b pb-4">
-            <span className="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-xs font-semibold">
-              {post.category || 'General'}
+          <h1 className="text-3xl md:text-5xl font-extrabold text-gray-900 leading-tight">{post.title}</h1>
+          
+          <div className="flex flex-wrap items-center gap-3 mt-4 text-sm text-gray-500 border-b pb-6">
+            <span className="bg-gradient-to-r from-blue-100 to-emerald-100 text-blue-800 px-3 py-1 rounded-full text-xs font-semibold">
+              {post.categories && post.categories.length > 0 ? post.categories.join(', ') : 'General'}
             </span>
             <span className="text-gray-300">|</span>
             <span>{post.created_at}</span>
@@ -198,43 +175,30 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
 
           <BlogContentClient content={post.content} />
 
-          {/* Author Bio */}
-          <div className="mt-12 p-6 bg-gray-50 rounded-lg border border-gray-100 flex items-center gap-4">
-            <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center text-white text-xl font-bold">📘</div>
+          <div className="mt-12 p-6 bg-white rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
+            <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-emerald-400 rounded-full flex items-center justify-center text-white text-2xl font-bold">📘</div>
             <div>
               <p className="font-bold text-gray-800">Financial Expert</p>
-              <p className="text-sm text-gray-500">Personal Finance &amp; Govt Schemes Specialist</p>
+              <p className="text-sm text-gray-500">Personal Finance & Govt Schemes Specialist</p>
             </div>
           </div>
 
-          {/* Related Posts */}
           {relatedPosts.length > 0 && (
             <div className="mt-12">
-              <h3 className="text-xl font-bold text-gray-800 mb-4">You May Also Like</h3>
+              <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <span className="w-1 h-6 bg-blue-500 rounded-full" />
+                You May Also Like
+              </h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {relatedPosts.map((p) => (
-                  <Link
-                    href={`/blog/${p.slug}`}
-                    key={p.id}
-                    className="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition border border-gray-100"
-                  >
-                    <h4 className="font-semibold text-blue-700 hover:underline line-clamp-2">
-                      {p.title}
-                    </h4>
+                {relatedPosts.map(p => (
+                  <Link href={`/blog/${p.slug}`} key={p.id} className="bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition border border-gray-100">
+                    <h4 className="font-semibold text-blue-600 hover:underline line-clamp-2">{p.title}</h4>
                     <p className="text-xs text-gray-400 mt-1">{p.created_at}</p>
                   </Link>
                 ))}
               </div>
             </div>
           )}
-
-          {/* ✅ Comments Section – अब यहाँ आएगा */}
-          <div className="mt-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">💬 Join the Discussion</h2>
-            <p className="text-sm text-gray-500 mb-6">Share your thoughts, ask questions, or leave feedback.</p>
-            <CommentSection slug={post.slug} />
-          </div>
-
         </article>
       </main>
       <Footer />
