@@ -1,4 +1,5 @@
 import { getPostBySlug, getAllPosts } from '@/lib/api';
+import { Post } from '@/lib/api'; // ✅ Import Post type
 import Link from 'next/link';
 import ShareButtons from './ShareButtons';
 import Header from '@/components/Header';
@@ -116,19 +117,15 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
     );
   }
 
-  // ✅ FIX: अब `categories` Array का उपयोग करें
-  // Related Posts – same categories (अगर कोई category है)
-  let relatedPosts: Awaited<ReturnType<typeof getPostBySlug>>[] = [];
+  // ✅ FIXED: `Post[]` type with Type Guard
+  let relatedPosts: Post[] = [];
   if (post.categories && post.categories.length > 0) {
     const allPosts = await getAllPosts();
-    // फ़िल्टर करें: उसी categories में से एक भी category match हो
-    relatedPosts = allPosts.filter((p) => {
+    relatedPosts = allPosts.filter((p): p is Post => {
       if (p.id === post.id) return false;
       if (!p.categories || p.categories.length === 0) return false;
-      // Check if any category matches
       return post.categories.some(cat => p.categories.includes(cat));
     });
-    // Limit to 3
     relatedPosts = relatedPosts.slice(0, 3);
   }
 
