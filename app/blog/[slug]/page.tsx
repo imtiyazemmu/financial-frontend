@@ -1,7 +1,8 @@
 import { getPostBySlug, getAllPosts } from '@/lib/api';
-import { Post } from '@/lib/api'; // ✅ Import Post type
+import { Post } from '@/lib/api';
 import Link from 'next/link';
-import ShareButtons from './ShareButtons';
+import PostShareButtons from '@/components/PostShareButtons'; // ✅ New Share Buttons
+import CommentSection from '@/components/CommentSection';     // ✅ Comment Section
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 
@@ -52,8 +53,6 @@ function BlogContentClient({ content }: { content: string }) {
       </div>
 
       <div className="blog-content" dangerouslySetInnerHTML={{ __html: content }} />
-
-      <ShareButtons />
 
       <style>{`
         .blog-content h1, .blog-content h2, .blog-content h3, .blog-content h4 {
@@ -117,7 +116,7 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
     );
   }
 
-  // ✅ FIXED: `Post[]` type with Type Guard
+  // ✅ Related Posts – using categories array
   let relatedPosts: Post[] = [];
   if (post.categories && post.categories.length > 0) {
     const allPosts = await getAllPosts();
@@ -172,6 +171,11 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
 
           <BlogContentClient content={post.content} />
 
+          {/* ✅ Post Share Buttons – यहाँ जोड़े गए */}
+          <div className="mt-6 pt-4 border-t border-gray-200">
+            <PostShareButtons slug={post.slug} title={post.title} />
+          </div>
+
           <div className="mt-12 p-6 bg-white rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
             <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-emerald-400 rounded-full flex items-center justify-center text-white text-2xl font-bold">📘</div>
             <div>
@@ -196,6 +200,12 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
               </div>
             </div>
           )}
+
+          {/* ✅ Comment Section – यहाँ जोड़ा गया */}
+          <div className="mt-16">
+            <CommentSection slug={post.slug} />
+          </div>
+
         </article>
       </main>
       <Footer />
