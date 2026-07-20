@@ -88,7 +88,7 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
           <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
           {/* Breadcrumb */}
-          <nav className="flex items-center gap-2 text-sm text-gray-500 mb-8 animate-fade-in-up">
+          <nav className="flex items-center gap-2 text-sm text-gray-500 mb-8">
             <Link href="/" className="hover:text-blue-600 transition-colors">🏠 Home</Link>
             <span className="text-gray-300">›</span>
             <Link href="/blog" className="hover:text-blue-600 transition-colors">📝 Blog</Link>
@@ -98,18 +98,17 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
 
           {/* Featured Image */}
           {post.featured_image && (
-            <div className="relative w-full h-72 md:h-96 lg:h-[500px] rounded-2xl overflow-hidden shadow-xl mb-10 pulse-glow">
+            <div className="relative w-full h-72 md:h-96 lg:h-[500px] rounded-2xl overflow-hidden shadow-xl mb-10">
               <img
                 src={post.featured_image}
                 alt={post.title}
                 className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
             </div>
           )}
 
           {/* Title */}
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-gray-900 leading-tight tracking-tight animate-fade-in-up">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-gray-900 leading-tight tracking-tight">
             {post.title}
           </h1>
 
@@ -135,7 +134,7 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
           </div>
 
           {/* Content Card */}
-          <div className="mt-8 bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-6 sm:p-8 md:p-10 border border-white/50 card-advance">
+          <div className="mt-8 bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-6 sm:p-8 md:p-10 border border-white/50">
             <BlogContent content={post.content} />
           </div>
 
