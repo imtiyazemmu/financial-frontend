@@ -83,8 +83,9 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
     <>
       <Header />
       <main className={`min-h-screen bg-gradient-to-b from-white via-blue-50/20 to-white ${inter.className}`}>
-        <article className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20">
-          
+        {/* ✅ चौड़ाई बढ़ाई: max-w-4xl → max-w-5xl */}
+        <article className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20">
+
           <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
           {/* Breadcrumb */}
@@ -134,7 +135,7 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
           </div>
 
           {/* Content Card */}
-          <div className="mt-8 bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-6 sm:p-8 md:p-10 border border-white/50">
+          <div className="mt-8 bg-white rounded-2xl shadow-lg p-6 sm:p-8 md:p-10 border border-gray-100/50">
             <BlogContent content={post.content} />
           </div>
 
