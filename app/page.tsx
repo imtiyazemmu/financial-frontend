@@ -1,10 +1,11 @@
 import Link from 'next/link';
 import Image from 'next/image';
+import Head from 'next/head'; // ✅ Head import for Preload
 import { getAllPosts } from '@/lib/api';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 
-// ✅ Helper: Cloudinary Image Optimizer – अब Width/Height नहीं डालेंगे, Next.js संभालेगा
+// ✅ Helper: Cloudinary Image Optimizer (सिर्फ WebP + Auto Quality)
 function getOptimizedImageUrl(url: string) {
   if (!url) return '';
   if (!url.includes('cloudinary.com')) return url;
@@ -12,7 +13,7 @@ function getOptimizedImageUrl(url: string) {
   if (parts.length < 2) return url;
   const base = parts[0];
   const path = parts[1];
-  // ✅ सिर्फ WebP और Auto Quality – Width/Height Next.js के माध्यम से
+  // ✅ सिर्फ WebP और Auto Quality – Width/Height Next.js संभालेगा
   const transformations = `f_webp,q_auto`;
   return `${base}/upload/${transformations}/${path}`;
 }
@@ -32,8 +33,20 @@ export default async function Home() {
     posts.flatMap(p => p.categories ?? [])
   ));
 
+  // ✅ LCP Image URL (पहली Featured Post)
+  const lcpImageUrl = featuredPosts.length > 0 
+    ? getOptimizedImageUrl(featuredPosts[0].featured_image) 
+    : '';
+
   return (
     <>
+      {/* ✅ Explicit Preload for LCP Image – Browser 4 सेकंड नहीं रुकेगा */}
+      <Head>
+        {lcpImageUrl && (
+          <link rel="preload" as="image" href={lcpImageUrl} fetchPriority="high" />
+        )}
+      </Head>
+
       <Header />
       <main className="min-h-screen bg-gradient-to-b from-white via-blue-50/30 to-white">
         
@@ -83,7 +96,8 @@ export default async function Home() {
                             src={optimizedImage}
                             alt={post.title}
                             fill
-                            priority={isFirst} // ✅ सिर्फ पहली Image High Priority
+                            priority={isFirst} // ✅ High Priority for LCP
+                            loading="eager" // ✅ Featured Posts हमेशा Eager Load हों (Lazy नहीं)
                             sizes={isFirst 
                               ? "(max-width: 480px) 90vw, (max-width: 768px) 80vw, 33vw" 
                               : "(max-width: 768px) 100vw, 33vw"
@@ -132,8 +146,10 @@ export default async function Home() {
             Latest Articles
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {remainingPosts.map((post) => {
+            {remainingPosts.map((post, index) => {
               const optimizedImage = getOptimizedImageUrl(post.featured_image);
+              // ✅ पहली 3 Latest Posts को भी Eager करें (ताकि Scroll पर खाली न दिखे)
+              const isEager = index < 3;
               return (
                 <Link href={`/blog/${post.slug}`} key={post.id} className="group">
                   <div className="bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-gray-100 h-full flex flex-col overflow-hidden">
@@ -143,7 +159,7 @@ export default async function Home() {
                           src={optimizedImage}
                           alt={post.title}
                           fill
-                          loading="lazy"
+                          loading={isEager ? "eager" : "lazy"} // ✅ पहली 3 Latest Eager
                           sizes="(max-width: 768px) 100vw, 33vw"
                           className="object-cover group-hover:scale-105 transition duration-500"
                         />
