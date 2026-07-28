@@ -46,13 +46,21 @@ export default async function RootLayout({
         <link rel="preconnect" href="https://res.cloudinary.com" />
         <link rel="dns-prefetch" href="https://res.cloudinary.com" />
         
-        {/* ✅ AdSense Verification – अब सबसे बाद में Load होगा (Lazy) */}
+        {/* ✅ CSS Preload (Render-blocking को कम करें) */}
+        <link
+          rel="preload"
+          href="/_next/static/css/0gsb-ts32pm1j.css"
+          as="style"
+          fetchPriority="high"
+        />
+        
+        {/* ✅ AdSense – सबसे बाद में Load */}
         {adsenseVerification && (
           <Script
             async
             src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseVerification}`}
             crossOrigin="anonymous"
-            strategy="lazyOnload" // ✅ यह Magic Line है! 'afterInteractive' से भी बेहतर
+            strategy="lazyOnload"
           />
         )}
       </head>
