@@ -2,7 +2,7 @@ import { getPostBySlug, getAllPosts } from '@/lib/api';
 import { Post } from '@/lib/api';
 import Link from 'next/link';
 import Image from 'next/image';
-import Head from 'next/head';
+import Head from 'next/head'; // ✅ यह Import जरूरी है
 import PostShareButtons from '@/components/PostShareButtons';
 import CommentSection from '@/components/CommentSection';
 import BlogContent from '@/components/BlogContent';
@@ -14,16 +14,14 @@ const inter = Inter({ subsets: ['latin'] });
 
 export const revalidate = 10;
 
-// Helper: Optimize Cloudinary images
+// ✅ Helper: Optimize Images
 function getOptimizedImageUrl(url: string, width: number = 1200, height: number = 700) {
   if (!url) return '';
-  // Only handle Cloudinary URLs
   if (!url.includes('cloudinary.com')) return url;
   const parts = url.split('/upload/');
   if (parts.length < 2) return url;
   const base = parts[0];
   const path = parts[1];
-  // Crop, webp, auto quality
   const transformations = `c_fill,w_${width},h_${height},f_webp,q_auto`;
   return `${base}/upload/${transformations}/${path}`;
 }
@@ -83,7 +81,6 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
     relatedPosts = relatedPosts.slice(0, 3);
   }
 
-  // Optimized image for the featured image (used for preload and rendering)
   const optimizedFeaturedImage = getOptimizedImageUrl(post.featured_image, 1200, 700);
 
   const jsonLd = {
@@ -100,19 +97,19 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
 
   return (
     <>
-      {/* Preload the LCP image for faster loading */}
-      {optimizedFeaturedImage && (
-        <Head>
+      {/* ✅ Preload LCP Image */}
+      <Head>
+        {optimizedFeaturedImage && (
           <link rel="preload" as="image" href={optimizedFeaturedImage} fetchPriority="high" />
-        </Head>
-      )}
+        )}
+      </Head>
+      
       <Header />
       <main className={`min-h-screen bg-gradient-to-b from-white via-blue-50/20 to-white ${inter.className}`}>
         <article className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20">
 
           <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
-          {/* Breadcrumb */}
           <nav className="flex items-center gap-2 text-sm text-gray-500 mb-8">
             <Link href="/" className="hover:text-blue-600 transition-colors">🏠 Home</Link>
             <span className="text-gray-300">›</span>
@@ -121,7 +118,7 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
             <span className="text-gray-700 font-medium truncate">{post.title}</span>
           </nav>
 
-          {/* Featured Image – Optimized with next/image */}
+          {/* Featured Image - Optimized */}
           {post.featured_image && optimizedFeaturedImage && (
             <div className="relative w-full h-72 md:h-96 lg:h-[500px] rounded-2xl overflow-hidden shadow-xl mb-10">
               <Image
@@ -136,12 +133,10 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
             </div>
           )}
 
-          {/* Title */}
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-gray-900 leading-tight tracking-tight">
             {post.title}
           </h1>
 
-          {/* Meta Info */}
           <div className="flex flex-wrap items-center gap-4 mt-4 text-sm text-gray-500 border-b border-gray-200 pb-6">
             <span className="bg-gradient-to-r from-blue-500/10 to-emerald-500/10 text-blue-700 px-4 py-1.5 rounded-full text-xs font-semibold border border-blue-200/30">
               {post.categories && post.categories.length > 0 ? post.categories.join(', ') : 'General'}
@@ -162,17 +157,14 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
             </span>
           </div>
 
-          {/* Content Card */}
           <div className="mt-8 bg-white rounded-2xl shadow-lg p-6 sm:p-8 md:p-10 border border-gray-100/50">
             <BlogContent content={post.content} />
           </div>
 
-          {/* Share Buttons */}
           <div className="mt-10 pt-6 border-t border-gray-200">
             <PostShareButtons slug={post.slug || slug} title={post.title} />
           </div>
 
-          {/* Author Bio */}
           <div className="mt-12 p-6 bg-gradient-to-r from-blue-50/80 to-emerald-50/80 rounded-2xl border border-blue-100/50 flex flex-col sm:flex-row items-center gap-5 shadow-sm">
             <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-emerald-400 rounded-full flex items-center justify-center text-white text-2xl font-bold shadow-md flex-shrink-0">
               📘
@@ -187,7 +179,6 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
             </div>
           </div>
 
-          {/* Related Posts */}
           {relatedPosts.length > 0 && (
             <div className="mt-16">
               <h3 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
@@ -213,7 +204,6 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
             </div>
           )}
 
-          {/* Comments */}
           <div className="mt-16">
             <CommentSection slug={slug} postId={post.id} />
           </div>

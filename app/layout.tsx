@@ -1,41 +1,30 @@
-import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+import type { Metadata } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
 import { getSettings } from "@/lib/api";
-import Script from "next/script";
+import Script from "next/script"; // ✅ Ye import check karo
 import "./globals.css";
 
-const inter = Inter({
+const geistSans = Geist({
+  variable: "--font-geist-sans",
   subsets: ["latin"],
-  display: "swap",
-  variable: "--font-inter",
 });
 
-// ✅ SEO Metadata – सिर्फ आवश्यक
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
+
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"),
-  title: "FinanceTips – Personal Finance & Govt Schemes India",
-  description: "Expert financial tips, government schemes, banking guides, loan calculators, and stock market basics in Hindi.",
+  title: "Financial Tips & Govt Schemes India | Personal Finance",
+  description: "Expert financial tips, government schemes, banking guides, and more.",
   keywords: "personal finance, government schemes, banking, loans, insurance, crypto, stock market, financial tips",
   authors: [{ name: "Financial Expert" }],
   openGraph: {
-    title: "FinanceTips – Personal Finance & Govt Schemes India",
-    description: "Expert financial tips, government schemes, banking guides, loan calculators, and stock market basics in Hindi.",
+    title: "Financial Tips & Govt Schemes India",
+    description: "Learn personal finance, government schemes, and banking in Hindi.",
     type: "website",
     locale: "hi_IN",
-    url: process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
   },
-  twitter: {
-    card: "summary_large_image",
-    title: "FinanceTips – Personal Finance & Govt Schemes India",
-    description: "Expert financial tips, government schemes, banking guides, loan calculators, and stock market basics in Hindi.",
-  },
-};
-
-// ✅ Viewport – Mobile Friendly
-export const viewport: Viewport = {
-  width: "device-width",
-  initialScale: 1,
-  themeColor: "#1e3a8a", // Dark Blue
 };
 
 export default async function RootLayout({
@@ -43,41 +32,43 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Settings (AdSense) – Error Handling के साथ
   const settings = await getSettings().catch(() => ({}));
-  const headerAd = settings?.ads_header || "";
-  const footerAd = settings?.ads_footer || "";
-  
-  // ✅ AdSense Verification Code – पहले Admin Settings से, नहीं तो Hardcoded
-  const adsenseVerification = settings?.adsense_verification || "ca-pub-2115676103932727";
+  const headerAd = settings?.ads_header || '';
+  const footerAd = settings?.ads_footer || '';
+  const adsenseVerification = settings?.adsense_verification || '';
 
   return (
-    <html lang="hi" className={`${inter.variable} antialiased`}>
-      <body className="bg-white text-gray-900 min-h-screen flex flex-col">
-        {/* ✅ AdSense Script – Dynamic या Hardcoded */}
-        <Script
-          async
-          src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseVerification}`}
-          crossOrigin="anonymous"
-          strategy="afterInteractive"
-        />
-
-        {/* Header Ad – Top (अगर Admin में डाला है तो) */}
-        {headerAd && (
-          <div
-            className="max-w-7xl mx-auto px-4 py-2 text-center text-sm text-gray-500"
-            dangerouslySetInnerHTML={{ __html: headerAd }}
+    <html
+      lang="hi"
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+    >
+      <head>
+        {/* ✅ Preconnect to Cloudinary (DNS Lookup Speed) */}
+        <link rel="preconnect" href="https://res.cloudinary.com" />
+        <link rel="dns-prefetch" href="https://res.cloudinary.com" />
+        
+        {/* ✅ AdSense Verification (अब Render Blocking नहीं करेगा) */}
+        {adsenseVerification && (
+          <Script
+            async
+            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseVerification}`}
+            crossOrigin="anonymous"
+            strategy="afterInteractive" // ✅ यह Magic Line है!
           />
         )}
-
-        {/* Main Content */}
+      </head>
+      <body className="min-h-full flex flex-col">
+        {headerAd && (
+          <div 
+            className="container mx-auto p-2 text-center"
+            dangerouslySetInnerHTML={{ __html: headerAd }} 
+          />
+        )}
         <main className="flex-grow">{children}</main>
-
-        {/* Footer Ad – Bottom (अगर Admin में डाला है तो) */}
         {footerAd && (
-          <div
-            className="max-w-7xl mx-auto px-4 py-2 text-center text-sm text-gray-500 border-t border-gray-100"
-            dangerouslySetInnerHTML={{ __html: footerAd }}
+          <div 
+            className="container mx-auto p-2 text-center border-t"
+            dangerouslySetInnerHTML={{ __html: footerAd }} 
           />
         )}
       </body>
