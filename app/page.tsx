@@ -1,10 +1,11 @@
 import Link from 'next/link';
 import Image from 'next/image';
+import Head from 'next/head'; // ✅ Import Head for Preload
 import { getAllPosts } from '@/lib/api';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 
-// ✅ Helper: Cloudinary Image Optimizer (WebP + Resize)
+// ✅ Helper: Cloudinary Image Optimizer
 function getOptimizedImageUrl(url: string, width: number = 800, height: number = 450) {
   if (!url) return '';
   if (!url.includes('cloudinary.com')) return url;
@@ -31,8 +32,20 @@ export default async function Home() {
     posts.flatMap(p => p.categories ?? [])
   ));
 
+  // ✅ LCP Image URL (First Featured Post)
+  const lcpImageUrl = featuredPosts.length > 0 
+    ? getOptimizedImageUrl(featuredPosts[0].featured_image, 800, 450) 
+    : '';
+
   return (
     <>
+      {/* ✅ Explicit Preload for LCP Image (Home Page) */}
+      <Head>
+        {lcpImageUrl && (
+          <link rel="preload" as="image" href={lcpImageUrl} fetchPriority="high" />
+        )}
+      </Head>
+      
       <Header />
       <main className="min-h-screen bg-gradient-to-b from-white via-blue-50/30 to-white">
         
@@ -72,7 +85,7 @@ export default async function Home() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {featuredPosts.map((post, index) => {
                 const optimizedImage = getOptimizedImageUrl(post.featured_image, 800, 450);
-                const isFirst = index === 0; // ✅ सिर्फ पहली Image High Priority
+                const isFirst = index === 0;
                 return (
                   <Link href={`/blog/${post.slug}`} key={post.id} className="group">
                     <div className="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 h-full flex flex-col border border-gray-100">

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { getSettings } from "@/lib/api";
-import Script from "next/script"; // ✅ Ye import check karo
+import Script from "next/script";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -43,17 +43,16 @@ export default async function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <head>
-        {/* ✅ Preconnect to Cloudinary (DNS Lookup Speed) */}
         <link rel="preconnect" href="https://res.cloudinary.com" />
         <link rel="dns-prefetch" href="https://res.cloudinary.com" />
         
-        {/* ✅ AdSense Verification (अब Render Blocking नहीं करेगा) */}
+        {/* ✅ AdSense Verification – अब सबसे बाद में Load होगा (Lazy) */}
         {adsenseVerification && (
           <Script
             async
             src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseVerification}`}
             crossOrigin="anonymous"
-            strategy="afterInteractive" // ✅ यह Magic Line है!
+            strategy="lazyOnload" // ✅ यह Magic Line है! 'afterInteractive' से भी बेहतर
           />
         )}
       </head>
