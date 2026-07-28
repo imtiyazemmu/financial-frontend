@@ -33,14 +33,14 @@ export default async function Home() {
     posts.flatMap(p => p.categories ?? [])
   ));
 
-  // ✅ LCP Image URL (Mobile के लिए 600px, Desktop के लिए 800px)
+  // ✅ LCP Image URL – Direct Cloudinary URL (Mobile फ्रेंडली 600px)
   const lcpImageUrl = featuredPosts.length > 0 
     ? getOptimizedImageUrl(featuredPosts[0].featured_image, 600, 350) 
     : '';
 
   return (
     <>
-      {/* ✅ Preload LCP Image (अब सीधा Cloudinary URL) */}
+      {/* ✅ Preload LCP Image – Direct URL */}
       <Head>
         {lcpImageUrl && (
           <link rel="preload" as="image" href={lcpImageUrl} fetchPriority="high" />
@@ -86,7 +86,6 @@ export default async function Home() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {featuredPosts.map((post, index) => {
                 const isFirst = index === 0;
-                // ✅ LCP Image – 600px, बाकी – 400px
                 const imgWidth = isFirst ? 600 : 400;
                 const imgHeight = isFirst ? 350 : 250;
                 const optimizedImage = getOptimizedImageUrl(post.featured_image, imgWidth, imgHeight);
@@ -97,7 +96,7 @@ export default async function Home() {
                       <div className="relative overflow-hidden h-52">
                         {optimizedImage ? (
                           isFirst ? (
-                            // ✅ LCP Image – सीधा <img> (no next/image overhead)
+                            // ✅ LCP Image – Direct <img> (कोई Extra Roundtrip नहीं)
                             <img
                               src={optimizedImage}
                               alt={post.title}
@@ -108,7 +107,7 @@ export default async function Home() {
                               height={350}
                             />
                           ) : (
-                            // ✅ बाकी Featured – next/image
+                            // ✅ बाकी Featured – next/image (Optimized)
                             <Image
                               src={optimizedImage}
                               alt={post.title}

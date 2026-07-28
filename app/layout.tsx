@@ -46,12 +46,18 @@ export default async function RootLayout({
         <link rel="preconnect" href="https://res.cloudinary.com" />
         <link rel="dns-prefetch" href="https://res.cloudinary.com" />
         
-        {/* ✅ CSS Preload (Render-blocking को कम करें) */}
+        {/* ✅ CSS को Preload करें और Render-blocking हटाएं (Media Print Hack) */}
         <link
           rel="preload"
           href="/_next/static/css/0gsb-ts32pm1j.css"
           as="style"
           fetchPriority="high"
+        />
+        <link
+          rel="stylesheet"
+          href="/_next/static/css/0gsb-ts32pm1j.css"
+          media="print"
+          onLoad="this.media='all'"
         />
         
         {/* ✅ AdSense – सबसे बाद में Load */}
