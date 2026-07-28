@@ -61,14 +61,14 @@ export default async function RootLayout({
         />
         
         {/* ✅ AdSense – सबसे बाद में Load */}
-        {adsenseVerification && (
+        {/* {adsenseVerification && (
           <Script
             async
             src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseVerification}`}
             crossOrigin="anonymous"
             strategy="lazyOnload"
           />
-        )}
+        )} */}
       </head>
       <body className="min-h-full flex flex-col">
         {headerAd && (

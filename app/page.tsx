@@ -1,20 +1,31 @@
 import Link from 'next/link';
-import Image from 'next/image';
 import Head from 'next/head';
 import { getAllPosts } from '@/lib/api';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 
-// ✅ Helper: Cloudinary Image Optimizer
-function getOptimizedImageUrl(url: string, width: number = 800, height: number = 450) {
+// ✅ Extreme Optimization: LCP Image को 400px, WebP, Quality 60
+function getExtremeImageUrl(url: string) {
   if (!url) return '';
   if (!url.includes('cloudinary.com')) return url;
   const parts = url.split('/upload/');
   if (parts.length < 2) return url;
   const base = parts[0];
   const path = parts[1];
-  // ✅ LCP Image के लिए Quality 80 और छोटा साइज़
-  const transformations = `c_fill,w_${width},h_${height},f_webp,q_80`;
+  // ✅ 400px, WebP, Quality 60 – File Size < 50KB
+  const transformations = `c_fill,w_400,h_250,f_webp,q_60`;
+  return `${base}/upload/${transformations}/${path}`;
+}
+
+// ✅ Normal Image (बाकी Posts) – 300px, WebP, Quality 70
+function getNormalImageUrl(url: string) {
+  if (!url) return '';
+  if (!url.includes('cloudinary.com')) return url;
+  const parts = url.split('/upload/');
+  if (parts.length < 2) return url;
+  const base = parts[0];
+  const path = parts[1];
+  const transformations = `c_fill,w_300,h_200,f_webp,q_70`;
   return `${base}/upload/${transformations}/${path}`;
 }
 
@@ -25,7 +36,6 @@ export const metadata = {
 
 export default async function Home() {
   const posts = await getAllPosts();
-
   const featuredPosts = posts.slice(0, 3);
   const remainingPosts = posts.slice(3);
 
@@ -33,18 +43,21 @@ export default async function Home() {
     posts.flatMap(p => p.categories ?? [])
   ));
 
-  // ✅ LCP Image URL – Direct Cloudinary URL (Mobile फ्रेंडली 600px)
+  // ✅ LCP Image – Extreme छोटी (400px)
   const lcpImageUrl = featuredPosts.length > 0 
-    ? getOptimizedImageUrl(featuredPosts[0].featured_image, 600, 350) 
+    ? getExtremeImageUrl(featuredPosts[0].featured_image) 
     : '';
 
   return (
     <>
-      {/* ✅ Preload LCP Image – Direct URL */}
+      {/* ✅ Preload LCP Image – Absolute Priority */}
       <Head>
         {lcpImageUrl && (
           <link rel="preload" as="image" href={lcpImageUrl} fetchPriority="high" />
         )}
+        {/* ✅ Preconnect to Cloudinary */}
+        <link rel="preconnect" href="https://res.cloudinary.com" />
+        <link rel="dns-prefetch" href="https://res.cloudinary.com" />
       </Head>
 
       <Header />
@@ -76,7 +89,7 @@ export default async function Home() {
           </div>
         </section>
 
-        {/* Featured Posts */}
+        {/* Featured Posts – सिर्फ पहली Image Direct <img>, बाकी Normal <img> */}
         {featuredPosts.length > 0 && (
           <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
@@ -86,38 +99,24 @@ export default async function Home() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {featuredPosts.map((post, index) => {
                 const isFirst = index === 0;
-                const imgWidth = isFirst ? 600 : 400;
-                const imgHeight = isFirst ? 350 : 250;
-                const optimizedImage = getOptimizedImageUrl(post.featured_image, imgWidth, imgHeight);
-
+                // ✅ LCP: 400px, बाकी: 300px
+                const imgUrl = isFirst 
+                  ? getExtremeImageUrl(post.featured_image) 
+                  : getNormalImageUrl(post.featured_image);
                 return (
                   <Link href={`/blog/${post.slug}`} key={post.id} className="group">
                     <div className="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 h-full flex flex-col border border-gray-100">
                       <div className="relative overflow-hidden h-52">
-                        {optimizedImage ? (
-                          isFirst ? (
-                            // ✅ LCP Image – Direct <img> (कोई Extra Roundtrip नहीं)
-                            <img
-                              src={optimizedImage}
-                              alt={post.title}
-                              className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
-                              fetchPriority="high"
-                              loading="eager"
-                              width={600}
-                              height={350}
-                            />
-                          ) : (
-                            // ✅ बाकी Featured – next/image (Optimized)
-                            <Image
-                              src={optimizedImage}
-                              alt={post.title}
-                              fill
-                              priority={false}
-                              loading="eager"
-                              sizes="(max-width: 768px) 100vw, 33vw"
-                              className="object-cover group-hover:scale-105 transition duration-500"
-                            />
-                          )
+                        {imgUrl ? (
+                          <img
+                            src={imgUrl}
+                            alt={post.title}
+                            className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                            loading={isFirst ? "eager" : "lazy"}
+                            fetchPriority={isFirst ? "high" : "auto"}
+                            width={isFirst ? 400 : 300}
+                            height={isFirst ? 250 : 200}
+                          />
                         ) : (
                           <div className="w-full h-full bg-gradient-to-br from-blue-100 to-cyan-100 flex items-center justify-center text-4xl text-gray-300">
                             📊
@@ -161,20 +160,20 @@ export default async function Home() {
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {remainingPosts.map((post, index) => {
-              const optimizedImage = getOptimizedImageUrl(post.featured_image, 400, 250);
+              const imgUrl = getNormalImageUrl(post.featured_image);
               const isEager = index < 3;
               return (
                 <Link href={`/blog/${post.slug}`} key={post.id} className="group">
                   <div className="bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-gray-100 h-full flex flex-col overflow-hidden">
                     <div className="relative h-44 overflow-hidden">
-                      {optimizedImage ? (
-                        <Image
-                          src={optimizedImage}
+                      {imgUrl ? (
+                        <img
+                          src={imgUrl}
                           alt={post.title}
-                          fill
+                          className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
                           loading={isEager ? "eager" : "lazy"}
-                          sizes="(max-width: 768px) 100vw, 33vw"
-                          className="object-cover group-hover:scale-105 transition duration-500"
+                          width={300}
+                          height={200}
                         />
                       ) : (
                         <div className="w-full h-full bg-gradient-to-br from-gray-50 to-blue-50 flex items-center justify-center text-3xl text-gray-300">
